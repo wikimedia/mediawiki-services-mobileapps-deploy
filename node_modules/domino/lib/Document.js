@@ -11,6 +11,7 @@ var ProcessingInstruction = require('./ProcessingInstruction');
 var DOMImplementation = require('./DOMImplementation');
 var FilteredElementList = require('./FilteredElementList');
 var TreeWalker = require('./TreeWalker');
+var NodeIterator = require('./NodeIterator');
 var NodeFilter = require('./NodeFilter');
 var URL = require('./URL');
 var select = require('./select')
@@ -184,15 +185,32 @@ Document.prototype = Object.create(Node.prototype, {
   createTreeWalker: {value: function (root, whatToShow, filter) {
     whatToShow = whatToShow === undefined ? NodeFilter.SHOW_ALL : whatToShow;
 
-    if (filter && typeof filter.acceptNode == 'function') {
-      filter = filter.acceptNode;
-      // Support filter being a function
+    if (filter && typeof filter === 'object' &&
+		typeof filter.acceptNode == 'function') {
+      filter = filter.acceptNode.bind(filter);
+       // Support filter being a function
       // https://developer.mozilla.org/en-US/docs/DOM/document.createTreeWalker
     }
     else if (typeof filter != 'function') {
       filter = null;
     }
     return new TreeWalker(root, whatToShow, filter);
+  }},
+
+  // See: http://www.w3.org/TR/dom/#dom-document-createnodeiterator
+  createNodeIterator: {value: function (root, whatToShow, filter) {
+    whatToShow = whatToShow === undefined ? NodeFilter.SHOW_ALL : whatToShow;
+
+    if (filter && typeof filter === 'object' &&
+		typeof filter.acceptNode == 'function') {
+      filter = filter.acceptNode.bind(filter);
+      // Support filter being a function
+      // https://developer.mozilla.org/en-US/docs/DOM/document.createNodeIterator
+    }
+    else if (typeof filter != 'function') {
+      filter = null;
+    }
+    return new NodeIterator(root, whatToShow, filter);
   }},
 
   // Add some (surprisingly complex) document hierarchy validity

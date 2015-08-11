@@ -1,6 +1,7 @@
 module.exports = TreeWalker;
 
 var NodeFilter = require('./NodeFilter');
+var NodeTraversal = require('./NodeTraversal');
 
 var mapChild = {
   first: 'firstChild',
@@ -10,6 +11,8 @@ var mapChild = {
 };
 
 var mapSibling = {
+  first: 'nextSibling',
+  last: 'previousSibling',
   next: 'nextSibling',
   previous: 'previousSibling'
 };
@@ -41,7 +44,7 @@ function traverseChildren(tw, type) {
       }
     }
     while (node !== null) {
-      sibling = node[mapChild[type]];
+      sibling = node[mapSibling[type]];
       if (sibling !== null) {
         node = sibling;
         break;
@@ -56,7 +59,7 @@ function traverseChildren(tw, type) {
     }
   }
   return null;
-};
+}
 
 /**
  * @spec http://www.w3.org/TR/dom/#concept-traverse-siblings
@@ -82,7 +85,7 @@ function traverseSiblings(tw, type) {
         return node;
       }
       sibling = node[mapChild[type]];
-      if (result === NodeFilter.FILTER_REJECT) {
+      if (result === NodeFilter.FILTER_REJECT || sibling === null) {
         sibling = node[mapSibling[type]];
       }
     }
@@ -94,46 +97,19 @@ function traverseSiblings(tw, type) {
       return null;
     }
   }
-};
+}
 
-/**
- * @based on WebKit's NodeTraversal::nextSkippingChildren
- * https://trac.webkit.org/browser/trunk/Source/WebCore/dom/NodeTraversal.h?rev=137221#L103
- */
-function nextSkippingChildren(node, stayWithin) {
-  if (node === stayWithin) {
-    return null;
-  }
-  if (node.nextSibling !== null) {
-    return node.nextSibling;
-  }
-
-  /**
-   * @based on WebKit's NodeTraversal::nextAncestorSibling
-   * https://trac.webkit.org/browser/trunk/Source/WebCore/dom/NodeTraversal.cpp?rev=137221#L43
-   */
-  while (node.parentNode !== null) {
-    node = node.parentNode;
-    if (node === stayWithin) {
-      return null;
-    }
-    if (node.nextSibling !== null) {
-      return node.nextSibling;
-    }
-  }
-  return null;
-};
 
 /* Public API */
 
 /**
- * Implemented version: http://www.w3.org/TR/DOM-Level-2-Traversal-Range/traversal.html#Traversal-TreeWalker
+ * Implemented version: http://www.w3.org/TR/2015/WD-dom-20150618/#interface-treewalker
  * Latest version: http://www.w3.org/TR/dom/#interface-treewalker
  *
  * @constructor
  * @param {Node} root
  * @param {number} whatToShow [optional]
- * @param {Function} filter [optional]
+ * @param {Function|NodeFilter} filter [optional]
  * @throws Error
  */
 function TreeWalker(root, whatToShow, filter) {
@@ -148,7 +124,7 @@ function TreeWalker(root, whatToShow, filter) {
 
   tw.currentNode = root;
 
-  if (typeof filter == 'function') {
+  if (typeof filter !== 'function') {
     filter = null;
   }
 
@@ -181,7 +157,7 @@ function TreeWalker(root, whatToShow, filter) {
 
     return result;
   };
-};
+}
 
 TreeWalker.prototype = {
 
@@ -261,6 +237,7 @@ TreeWalker.prototype = {
           this.currentNode = node;
           return node;
         }
+        sibling = node.previousSibling;
       }
       if (node === this.root || node.parentNode === null) {
         return null;
@@ -276,6 +253,8 @@ TreeWalker.prototype = {
 
   /**
    * @spec http://www.w3.org/TR/dom/#dom-treewalker-nextnode
+   * @based on WebKit's TreeWalker::nextNode
+   * https://trac.webkit.org/browser/trunk/Source/WebCore/dom/TreeWalker.cpp?rev=179143#L252
    * @method
    * @return {Node|null}
    */
@@ -293,7 +272,7 @@ TreeWalker.prototype = {
           return node;
         }
       }
-      following = nextSkippingChildren(node, this.root);
+      following = NodeTraversal.nextSkippingChildren(node, this.root);
       if (following !== null) {
         node = following;
       }
@@ -308,4 +287,3 @@ TreeWalker.prototype = {
     }
   }
 };
-
