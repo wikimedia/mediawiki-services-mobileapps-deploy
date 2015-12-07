@@ -2,6 +2,7 @@ module.exports = CharacterData;
 
 var Leaf = require('./Leaf');
 var utils = require('./utils');
+var NonDocumentTypeChildNode = require('./NonDocumentTypeChildNode');
 
 function CharacterData() {
 }
@@ -114,3 +115,5 @@ CharacterData.prototype = Object.create(Leaf.prototype, {
   length: { get: function() { return this.data.length; }}
 
 });
+
+Object.defineProperties(CharacterData.prototype, NonDocumentTypeChildNode);
