@@ -1,0 +1,5 @@
+checks:
+  endpoints:
+    type: nrpe
+    stage: promote
+    command: check_endpoints_mobileapps
