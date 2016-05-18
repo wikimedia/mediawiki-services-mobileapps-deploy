@@ -1,5 +1,5 @@
 checks:
   endpoints:
     type: nrpe
-    stage: promote
+    stage: restart_service
     command: check_endpoints_mobileapps
