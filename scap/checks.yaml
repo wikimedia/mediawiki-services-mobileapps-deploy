@@ -3,3 +3,11 @@ checks:
     type: nrpe
     stage: restart_service
     command: check_endpoints_mobileapps
+  depool:
+    type: command
+    stage: promote
+    command: depool-mobileapps
+  repool:
+    type: command
+    stage: restart_service
+    command: pool-mobileapps
