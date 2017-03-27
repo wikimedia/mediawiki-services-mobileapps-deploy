@@ -50,12 +50,12 @@ services:
       # content for the CSP headers
       # csp: false  # uncomment this line to disable sending them
       # URL of the outbound proxy to use (complete with protocol)
-      proxy: <%= proxy if proxy else '' %>
+      # proxy: <%= proxy if proxy else '' %>
       # the list of domains for which not to use the proxy defined above
-      no_proxy_list:
-        - eqiad.wmnet
-        - codfw.wmnet
-        - discovery.wmnet
+      # no_proxy_list:
+      #  - eqiad.wmnet
+      #  - codfw.wmnet
+      #  - discovery.wmnet
       # the list of incoming request headers that can be logged; if left empty,
       # the following headers are allowed: cache-control, content-length,
       # content-type, if-match, user-agent, x-request-id
