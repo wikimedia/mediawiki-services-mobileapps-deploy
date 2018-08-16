@@ -110,6 +110,11 @@ Node.prototype = Object.create(EventTarget.prototype, {
     return next;
   }},
 
+  textContent: {
+    // Should override for DocumentFragment/Element/Attr/Text/PI/Comment
+    get: function() { return null; },
+    set: function(v) { /* do nothing */ },
+  },
 
   _countChildrenOfType: { value: function(type) {
     var sum = 0;
@@ -416,44 +421,55 @@ Node.prototype = Object.create(EventTarget.prototype, {
 
   lookupPrefix: { value: function lookupPrefix(ns) {
     var e;
-    if (ns === '') return null;
+    if (ns === '' || ns === null || ns === undefined) return null;
     switch(this.nodeType) {
     case ELEMENT_NODE:
-      return this.locateNamespacePrefix(ns);
+      return this._lookupNamespacePrefix(ns, this);
     case DOCUMENT_NODE:
       e = this.documentElement;
-      return e ? e.locateNamespacePrefix(ns) : null;
-    case DOCUMENT_TYPE_NODE:
+      return e ? e.lookupPrefix(ns) : null;
+    case ENTITY_NODE:
+    case NOTATION_NODE:
     case DOCUMENT_FRAGMENT_NODE:
+    case DOCUMENT_TYPE_NODE:
       return null;
+    case ATTRIBUTE_NODE:
+      e = this.ownerElement;
+      return e ? e.lookupPrefix(ns) : null;
     default:
       e = this.parentElement;
-      return e ? e.locateNamespacePrefix(ns) : null;
+      return e ? e.lookupPrefix(ns) : null;
     }
   }},
 
 
   lookupNamespaceURI: {value: function lookupNamespaceURI(prefix) {
+    if (prefix === '' || prefix === undefined) { prefix = null; }
     var e;
     switch(this.nodeType) {
     case ELEMENT_NODE:
-      return this.locateNamespace(prefix);
+      return utils.shouldOverride();
     case DOCUMENT_NODE:
       e = this.documentElement;
-      return e ? e.locateNamespace(prefix) : null;
+      return e ? e.lookupNamespaceURI(prefix) : null;
+    case ENTITY_NODE:
+    case NOTATION_NODE:
     case DOCUMENT_TYPE_NODE:
     case DOCUMENT_FRAGMENT_NODE:
       return null;
+    case ATTRIBUTE_NODE:
+      e = this.ownerElement;
+      return e ? e.lookupNamespaceURI(prefix) : null;
     default:
       e = this.parentElement;
-      return e ? e.locateNamespace(prefix) : null;
+      return e ? e.lookupNamespaceURI(prefix) : null;
     }
   }},
 
   isDefaultNamespace: { value: function isDefaultNamespace(ns) {
-    var defaultns = this.lookupNamespaceURI(null);
-    if (defaultns === null) defaultns = '';
-    return ns === defaultns;
+    if (ns === '' || ns === undefined) { ns = null; }
+    var defaultNamespace = this.lookupNamespaceURI(null);
+    return (defaultNamespace === ns);
   }},
 
   // Utility methods for nodes.  Not part of the DOM
@@ -789,6 +805,14 @@ Node.prototype = Object.create(EventTarget.prototype, {
     return s;
   }},
 
+  // Non-standard, but often useful for debugging.
+  outerHTML: {
+    get: function() {
+      return this._serializeOne({ nodeType: 0 });
+    },
+    set: utils.nyi,
+  },
+
   // mirror node type properties in the prototype, so they are present
   // in instances of Node (and subclasses)
   ELEMENT_NODE:                { value: ELEMENT_NODE },
@@ -802,7 +826,14 @@ Node.prototype = Object.create(EventTarget.prototype, {
   DOCUMENT_NODE:               { value: DOCUMENT_NODE },
   DOCUMENT_TYPE_NODE:          { value: DOCUMENT_TYPE_NODE },
   DOCUMENT_FRAGMENT_NODE:      { value: DOCUMENT_FRAGMENT_NODE },
-  NOTATION_NODE:               { value: NOTATION_NODE }
+  NOTATION_NODE:               { value: NOTATION_NODE },
+
+  DOCUMENT_POSITION_DISCONNECTED: { value: DOCUMENT_POSITION_DISCONNECTED },
+  DOCUMENT_POSITION_PRECEDING:    { value: DOCUMENT_POSITION_PRECEDING },
+  DOCUMENT_POSITION_FOLLOWING:    { value: DOCUMENT_POSITION_FOLLOWING },
+  DOCUMENT_POSITION_CONTAINS:     { value: DOCUMENT_POSITION_CONTAINS },
+  DOCUMENT_POSITION_CONTAINED_BY: { value: DOCUMENT_POSITION_CONTAINED_BY },
+  DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: { value: DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC },
 });
 
 function escape(s) {

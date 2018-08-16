@@ -2003,6 +2003,17 @@ function HTMLParser(address, fragmentContext, options) {
       return doc;
     },
 
+    // Convenience function for internal use. Can only be called once,
+    // as it removes the nodes from `doc` to add them to fragment.
+    _asDocumentFragment: function() {
+      var frag = doc.createDocumentFragment();
+      var root = doc.firstChild;
+      while(root.hasChildNodes()) {
+        frag.appendChild(root.firstChild);
+      }
+      return frag;
+    },
+
     // Internal function used from HTMLScriptElement to pause the
     // parser while a script is being loaded from the network
     pause: function() {
@@ -2641,7 +2652,9 @@ function HTMLParser(address, fragmentContext, options) {
 
   function insertForeignElement(name, attrs, ns) {
     return insertElement(function(doc) {
-      var elt = doc.createElementNS(ns, name);
+      // We need to prevent createElementNS from trying to parse `name` as a
+      // `qname`, so use an internal Document#_createElementNS() interface.
+      var elt = doc._createElementNS(name, ns, null);
       if (attrs) {
         for(var i = 0, n = attrs.length; i < n; i++) {
           var attr = attrs[i];
@@ -5284,7 +5297,7 @@ function HTMLParser(address, fragmentContext, options) {
       // implementation.createDocumentType because the create
       // function throws errors on invalid characters, and
       // we don't want the parser to throw them.
-      doc.appendChild(new DocumentType(name,publicid, systemid));
+      doc.appendChild(new DocumentType(doc, name, publicid, systemid));
 
       // Note that there is no public API for setting quirks mode We can
       // do this here because we have access to implementation details
