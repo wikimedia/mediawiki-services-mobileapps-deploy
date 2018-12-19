@@ -91,4 +91,4 @@ services:
         query: "{{ default(request.query, {}) }}"
         headers: "{{request.headers}}"
         body: "{{request.body}}"
-
+        timeout: 60000
