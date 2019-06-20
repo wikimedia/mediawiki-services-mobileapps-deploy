@@ -23,7 +23,7 @@ worker_heartbeat_timeout: 15000
 logging:
   level: warn
   name: mobileapps
-  streams: 
+  streams:
     - host: <%= logstash_host %>
       port: <%= logstash_port %>
       type: gelf
@@ -32,7 +32,7 @@ logging:
       type: file
 
 # Statsd metrics reporter
-metrics: 
+metrics:
   name: mobileapps
   host: <%= metrics_host %>
   port: <%= metrics_port %>
@@ -83,6 +83,7 @@ services:
         headers:
           host: "{{request.params.domain}}"
           user-agent: "{{user-agent}}"
+          accept-language: "{{accept-language}}"
         body: "{{ default(request.query, {}) }}"
       # the request template for contacting RESTBase
       restbase_req:
