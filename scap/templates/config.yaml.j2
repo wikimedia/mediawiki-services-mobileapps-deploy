@@ -93,3 +93,6 @@ services:
         headers: "{{request.headers}}"
         body: "{{request.body}}"
         timeout: 60000
+      # REST API external base URIs (for injection into mobile-html output)
+      mobile_html_rest_api_base_uri: '//meta.wikimedia.org/api/rest_v1/'
+      mobile_html_local_rest_api_base_uri_template: '//{{domain}}/api/rest_v1/'
