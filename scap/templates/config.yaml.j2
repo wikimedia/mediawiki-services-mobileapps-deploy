@@ -85,6 +85,14 @@ services:
           user-agent: "{{user-agent}}"
           accept-language: "{{accept-language}}"
         body: "{{ default(request.query, {}) }}"
+      # the template used for requesting ResourceLoader module content from load.php
+      mw_resource_loader_req:
+        method: post
+        uri: <%= mw_resource_loader_uri %>
+        headers:
+          host: "{{request.params.domain}}"
+          user-agent: "{{user-agent}}"
+        body: "{{ default(request.query, {}) }}"
       # the request template for contacting RESTBase
       restbase_req:
         method: "{{request.method}}"
