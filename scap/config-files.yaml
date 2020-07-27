@@ -1,5 +1,0 @@
----
-/etc/mobileapps/config.yaml:
-  template: config.yaml.j2
-  erb_syntax: True
-  remote_vars: /etc/mobileapps/config-vars.yaml
